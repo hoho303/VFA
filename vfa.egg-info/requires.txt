@@ -1,0 +1,1 @@
+clip@ git+ssh://git@github.com/openai/CLIP.git

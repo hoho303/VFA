@@ -1,0 +1,10 @@
+Metadata-Version: 1.2
+Name: vfa
+Version: 0.1
+Summary: Codebase for few-shot object detection
+Home-page: https://github.com/csuhan/VFA
+Author: csuhan
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.6

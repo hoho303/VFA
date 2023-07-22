@@ -1,0 +1,12 @@
+README.md
+setup.py
+vfa/__init__.py
+vfa/utils.py
+vfa/vfa_bbox_head.py
+vfa/vfa_detector.py
+vfa/vfa_roi_head.py
+vfa.egg-info/PKG-INFO
+vfa.egg-info/SOURCES.txt
+vfa.egg-info/dependency_links.txt
+vfa.egg-info/requires.txt
+vfa.egg-info/top_level.txt
