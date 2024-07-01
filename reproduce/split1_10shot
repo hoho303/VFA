@@ -1,0 +1,1602 @@
+2024-07-01 14:46:33,908 - mmfewshot - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.13 (default, Mar 29 2022, 02:18:16) [GCC 7.5.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 3090
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 11.3, V11.3.109
+GCC: gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+PyTorch: 1.12.1
+PyTorch compiling details: PyTorch built with:
+  - GCC 9.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.6.0 (Git Hash 52b5f107dd9cf10910aaa19cb47f3abf9b349815)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.3
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 8.3.2  (built against CUDA 11.5)
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.3, CUDNN_VERSION=8.3.2, CXX_COMPILER=/opt/rh/devtoolset-9/root/usr/bin/c++, CXX_FLAGS= -fabi-version=11 -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Werror=cast-function-type -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.12.1, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=OFF, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, 
+
+TorchVision: 0.13.1
+OpenCV: 4.10.0
+MMCV: 1.6.0
+MMCV Compiler: GCC 9.3
+MMCV CUDA Compiler: 11.3
+MMDetection: 2.24.0+8d3363e
+------------------------------------------------------------
+
+2024-07-01 14:46:37,029 - mmfewshot - INFO - Distributed training: False
+2024-07-01 14:46:39,891 - mmfewshot - INFO - Config:
+img_norm_cfg = dict(
+    mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False)
+train_multi_pipelines = dict(
+    query=[
+        dict(type='LoadImageFromFile'),
+        dict(type='LoadAnnotations', with_bbox=True),
+        dict(
+            type='Resize',
+            img_scale=[(1333, 480), (1333, 512), (1333, 544), (1333, 576),
+                       (1333, 608), (1333, 640), (1333, 672), (1333, 704),
+                       (1333, 736), (1333, 768), (1333, 800)],
+            keep_ratio=True,
+            multiscale_mode='value'),
+        dict(type='RandomFlip', flip_ratio=0.5),
+        dict(
+            type='Normalize',
+            mean=[103.53, 116.28, 123.675],
+            std=[1.0, 1.0, 1.0],
+            to_rgb=False),
+        dict(type='Pad', size_divisor=32),
+        dict(type='DefaultFormatBundle'),
+        dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+    ],
+    support=[
+        dict(type='LoadImageFromFile'),
+        dict(type='LoadAnnotations', with_bbox=True),
+        dict(
+            type='Normalize',
+            mean=[103.53, 116.28, 123.675],
+            std=[1.0, 1.0, 1.0],
+            to_rgb=False),
+        dict(type='GenerateMask', target_size=(224, 224)),
+        dict(type='RandomFlip', flip_ratio=0.0),
+        dict(type='DefaultFormatBundle'),
+        dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+    ])
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1333, 800),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[103.53, 116.28, 123.675],
+                std=[1.0, 1.0, 1.0],
+                to_rgb=False),
+            dict(type='Pad', size_divisor=32),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ])
+]
+data_root = 'data/VOCdevkit/'
+data = dict(
+    samples_per_gpu=4,
+    workers_per_gpu=4,
+    train=dict(
+        type='NWayKShotDataset',
+        num_support_ways=20,
+        num_support_shots=1,
+        one_support_shot_per_image=False,
+        num_used_support_shots=30,
+        save_dataset=True,
+        dataset=dict(
+            type='FewShotVOCDefaultDataset',
+            ann_cfg=[dict(method='MetaRCNN', setting='SPLIT1_10SHOT')],
+            img_prefix='data/VOCdevkit/',
+            multi_pipelines=dict(
+                query=[
+                    dict(type='LoadImageFromFile'),
+                    dict(type='LoadAnnotations', with_bbox=True),
+                    dict(
+                        type='Resize',
+                        img_scale=[(1333, 480), (1333, 512), (1333, 544),
+                                   (1333, 576), (1333, 608), (1333, 640),
+                                   (1333, 672), (1333, 704), (1333, 736),
+                                   (1333, 768), (1333, 800)],
+                        keep_ratio=True,
+                        multiscale_mode='value'),
+                    dict(type='RandomFlip', flip_ratio=0.5),
+                    dict(
+                        type='Normalize',
+                        mean=[103.53, 116.28, 123.675],
+                        std=[1.0, 1.0, 1.0],
+                        to_rgb=False),
+                    dict(type='Pad', size_divisor=32),
+                    dict(type='DefaultFormatBundle'),
+                    dict(
+                        type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+                ],
+                support=[
+                    dict(type='LoadImageFromFile'),
+                    dict(type='LoadAnnotations', with_bbox=True),
+                    dict(
+                        type='Normalize',
+                        mean=[103.53, 116.28, 123.675],
+                        std=[1.0, 1.0, 1.0],
+                        to_rgb=False),
+                    dict(type='GenerateMask', target_size=(224, 224)),
+                    dict(type='RandomFlip', flip_ratio=0.0),
+                    dict(type='DefaultFormatBundle'),
+                    dict(
+                        type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+                ]),
+            classes='ALL_CLASSES_SPLIT1',
+            use_difficult=False,
+            instance_wise=False,
+            dataset_name='query_support_dataset',
+            num_novel_shots=10,
+            num_base_shots=10)),
+    val=dict(
+        type='FewShotVOCDataset',
+        ann_cfg=[
+            dict(
+                type='ann_file',
+                ann_file='data/VOCdevkit/VOC2007/ImageSets/Main/test.txt')
+        ],
+        img_prefix='data/VOCdevkit/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1333, 800),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[103.53, 116.28, 123.675],
+                        std=[1.0, 1.0, 1.0],
+                        to_rgb=False),
+                    dict(type='Pad', size_divisor=32),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ],
+        classes='ALL_CLASSES_SPLIT1'),
+    test=dict(
+        type='FewShotVOCDataset',
+        ann_cfg=[
+            dict(
+                type='ann_file',
+                ann_file='data/VOCdevkit/VOC2007/ImageSets/Main/test.txt')
+        ],
+        img_prefix='data/VOCdevkit/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1333, 800),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[103.53, 116.28, 123.675],
+                        std=[1.0, 1.0, 1.0],
+                        to_rgb=False),
+                    dict(type='Pad', size_divisor=32),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ],
+        test_mode=True,
+        classes='ALL_CLASSES_SPLIT1'),
+    model_init=dict(
+        copy_from_train_dataset=True,
+        samples_per_gpu=16,
+        workers_per_gpu=1,
+        type='FewShotVOCDataset',
+        ann_cfg=None,
+        img_prefix='data/VOCdevkit/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                type='Normalize',
+                mean=[103.53, 116.28, 123.675],
+                std=[1.0, 1.0, 1.0],
+                to_rgb=False),
+            dict(type='GenerateMask', target_size=(224, 224)),
+            dict(type='RandomFlip', flip_ratio=0.0),
+            dict(type='DefaultFormatBundle'),
+            dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+        ],
+        use_difficult=False,
+        instance_wise=True,
+        num_novel_shots=None,
+        classes='ALL_CLASSES_SPLIT1',
+        dataset_name='model_init_dataset'))
+evaluation = dict(
+    interval=2000,
+    metric='mAP',
+    class_splits=['BASE_CLASSES_SPLIT1', 'NOVEL_CLASSES_SPLIT1'])
+optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(
+    policy='step',
+    warmup=None,
+    warmup_iters=500,
+    warmup_ratio=0.001,
+    step=[60000, 80000])
+runner = dict(type='IterBasedRunner', max_iters=2000)
+norm_cfg = dict(type='BN', requires_grad=False)
+pretrained = 'open-mmlab://detectron2/resnet101_caffe'
+model = dict(
+    type='VFA',
+    pretrained='open-mmlab://detectron2/resnet101_caffe',
+    backbone=dict(
+        type='ResNetWithMetaConv',
+        depth=101,
+        num_stages=3,
+        strides=(1, 2, 2),
+        dilations=(1, 1, 1),
+        out_indices=(2, ),
+        frozen_stages=2,
+        norm_cfg=dict(type='BN', requires_grad=False),
+        norm_eval=True,
+        style='caffe'),
+    rpn_head=dict(
+        type='RPNHead',
+        in_channels=1024,
+        feat_channels=512,
+        anchor_generator=dict(
+            type='AnchorGenerator',
+            scales=[2, 4, 8, 16, 32],
+            ratios=[0.5, 1.0, 2.0],
+            scale_major=False,
+            strides=[16]),
+        bbox_coder=dict(
+            type='DeltaXYWHBBoxCoder',
+            target_means=[0.0, 0.0, 0.0, 0.0],
+            target_stds=[1.0, 1.0, 1.0, 1.0]),
+        loss_cls=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+        loss_bbox=dict(type='L1Loss', loss_weight=1.0)),
+    roi_head=dict(
+        type='VFARoIHead',
+        shared_head=dict(
+            type='MetaRCNNResLayer',
+            pretrained='open-mmlab://detectron2/resnet101_caffe',
+            depth=50,
+            stage=3,
+            stride=2,
+            dilation=1,
+            style='caffe',
+            norm_cfg=dict(type='BN', requires_grad=False),
+            norm_eval=True),
+        bbox_roi_extractor=dict(
+            type='SingleRoIExtractor',
+            roi_layer=dict(type='RoIAlign', output_size=14, sampling_ratio=0),
+            out_channels=1024,
+            featmap_strides=[16]),
+        bbox_head=dict(
+            type='VFABBoxHead',
+            with_avg_pool=False,
+            roi_feat_size=1,
+            in_channels=2048,
+            num_classes=20,
+            bbox_coder=dict(
+                type='DeltaXYWHBBoxCoder',
+                target_means=[0.0, 0.0, 0.0, 0.0],
+                target_stds=[0.1, 0.1, 0.2, 0.2]),
+            reg_class_agnostic=False,
+            loss_cls=dict(
+                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+            loss_bbox=dict(type='SmoothL1Loss', loss_weight=1.0),
+            num_meta_classes=20,
+            meta_cls_in_channels=2048,
+            with_meta_cls_loss=True,
+            loss_meta=dict(
+                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
+        aggregation_layer=dict(
+            type='AggregationLayer',
+            aggregator_cfgs=[
+                dict(
+                    type='DotProductAggregator',
+                    in_channels=2048,
+                    with_fc=False)
+            ]),
+        novel_class=(15, 16, 17, 18, 19),
+        base_class=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14),
+        num_novel=5),
+    train_cfg=dict(
+        rpn=dict(
+            assigner=dict(
+                type='MaxIoUAssigner',
+                pos_iou_thr=0.7,
+                neg_iou_thr=0.3,
+                min_pos_iou=0.3,
+                match_low_quality=True,
+                ignore_iof_thr=-1),
+            sampler=dict(
+                type='RandomSampler',
+                num=256,
+                pos_fraction=0.5,
+                neg_pos_ub=-1,
+                add_gt_as_proposals=False),
+            allowed_border=0,
+            pos_weight=-1,
+            debug=False),
+        rpn_proposal=dict(
+            nms_pre=12000,
+            max_per_img=2000,
+            nms=dict(type='nms', iou_threshold=0.7),
+            min_bbox_size=0),
+        rcnn=dict(
+            assigner=dict(
+                type='MaxIoUAssigner',
+                pos_iou_thr=0.5,
+                neg_iou_thr=0.5,
+                min_pos_iou=0.5,
+                match_low_quality=False,
+                ignore_iof_thr=-1),
+            sampler=dict(
+                type='RandomSampler',
+                num=128,
+                pos_fraction=0.25,
+                neg_pos_ub=-1,
+                add_gt_as_proposals=True),
+            pos_weight=-1,
+            debug=False)),
+    test_cfg=dict(
+        rpn=dict(
+            nms_pre=6000,
+            max_per_img=300,
+            nms=dict(type='nms', iou_threshold=0.7),
+            min_bbox_size=0),
+        rcnn=dict(
+            score_thr=0.05,
+            nms=dict(type='nms', iou_threshold=0.3),
+            max_per_img=100)),
+    frozen_parameters=[
+        'backbone', 'shared_head', 'aggregation_layer', 'rpn_head'
+    ])
+custom_imports = dict(
+    imports=['vfa.vfa_detector', 'vfa.vfa_roi_head', 'vfa.vfa_bbox_head'],
+    allow_failed_imports=False)
+checkpoint_config = dict(interval=2000)
+log_config = dict(interval=50, hooks=[dict(type='TextLoggerHook')])
+custom_hooks = [dict(type='NumClassCheckHook')]
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = 'work_dirs/vfa_r101_c4_8xb4_voc-split1_base-training/iter_18000.pth'
+resume_from = None
+workflow = [('train', 1)]
+use_infinite_sampler = True
+seed = 42
+work_dir = './work_dirs/vfa_r101_c4_8xb4_voc-split1_10shot-fine-tuning'
+gpu_ids = range(0, 1)
+
+2024-07-01 14:46:39,892 - mmfewshot - INFO - Set random seed to 42, deterministic: False
+2024-07-01 14:46:40,630 - mmfewshot - INFO - initialize ResNetWithMetaConv with init_cfg {'type': 'Pretrained', 'checkpoint': 'open-mmlab://detectron2/resnet101_caffe'}
+2024-07-01 14:46:40,972 - mmfewshot - INFO - initialize RPNHead with init_cfg {'type': 'Normal', 'layer': 'Conv2d', 'std': 0.01}
+2024-07-01 14:46:41,036 - mmfewshot - INFO - initialize MetaRCNNResLayer with init_cfg {'type': 'Pretrained', 'checkpoint': 'open-mmlab://detectron2/resnet101_caffe'}
+2024-07-01 14:46:41,197 - mmfewshot - INFO - initialize VFABBoxHead with init_cfg [{'type': 'Normal', 'std': 0.01, 'override': {'name': 'fc_cls'}}, {'type': 'Normal', 'std': 0.001, 'override': {'name': 'fc_reg'}}]
+Name of parameter - Initialization information
+
+backbone.conv1.weight - torch.Size([64, 3, 7, 7]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.conv1.weight - torch.Size([64, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.downsample.0.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.downsample.1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.0.downsample.1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.1.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer1.2.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.conv1.weight - torch.Size([128, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.downsample.1.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.0.downsample.1.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.1.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.2.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer2.3.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.conv1.weight - torch.Size([256, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.downsample.0.weight - torch.Size([1024, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.downsample.1.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.0.downsample.1.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.1.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.2.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.3.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.4.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.5.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.6.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.7.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.8.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.9.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.10.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.11.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.12.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.13.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.14.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.15.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.16.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.17.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.18.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.19.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.20.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.21.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.layer3.22.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+backbone.meta_conv.weight - torch.Size([64, 4, 7, 7]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+rpn_head.rpn_conv.weight - torch.Size([512, 1024, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_conv.bias - torch.Size([512]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_cls.weight - torch.Size([30, 512, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_cls.bias - torch.Size([30]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_reg.weight - torch.Size([60, 512, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_reg.bias - torch.Size([60]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+roi_head.shared_head.layer4.0.conv1.weight - torch.Size([512, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.downsample.0.weight - torch.Size([2048, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.downsample.1.weight - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.0.downsample.1.bias - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.1.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.shared_head.layer4.2.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://detectron2/resnet101_caffe 
+
+roi_head.bbox_head.fc_cls.weight - torch.Size([21, 2048]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+roi_head.bbox_head.fc_cls.bias - torch.Size([21]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+roi_head.bbox_head.fc_reg.weight - torch.Size([80, 2048]): 
+NormalInit: mean=0, std=0.001, bias=0 
+
+roi_head.bbox_head.fc_reg.bias - torch.Size([80]): 
+NormalInit: mean=0, std=0.001, bias=0 
+
+roi_head.bbox_head.fc_meta.weight - torch.Size([20, 2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.bbox_head.fc_meta.bias - torch.Size([20]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.encoder.0.weight - torch.Size([2048, 2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.encoder.0.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.encoder.1.weight - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.encoder.1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.fc_mu.weight - torch.Size([2048, 2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.fc_mu.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.fc_var.weight - torch.Size([2048, 2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.fc_var.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.decoder_input.weight - torch.Size([2048, 2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.decoder_input.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.decoder.0.weight - torch.Size([2048, 2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.decoder.0.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.decoder.1.weight - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+
+roi_head.vae.decoder.1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of VFA  
+2024-07-01 14:46:41,217 - mmfewshot - INFO - Frozen parameters: ['backbone', 'shared_head', 'aggregation_layer', 'rpn_head']
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.bbox_head.fc_cls.weight
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.bbox_head.fc_cls.bias
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.bbox_head.fc_reg.weight
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.bbox_head.fc_reg.bias
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.bbox_head.fc_meta.weight
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.bbox_head.fc_meta.bias
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.vae.encoder.0.weight
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.vae.encoder.0.bias
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.vae.encoder.1.weight
+2024-07-01 14:46:41,220 - mmfewshot - INFO - Training parameters: roi_head.vae.encoder.1.bias
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.fc_mu.weight
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.fc_mu.bias
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.fc_var.weight
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.fc_var.bias
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.decoder_input.weight
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.decoder_input.bias
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.decoder.0.weight
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.decoder.0.bias
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.decoder.1.weight
+2024-07-01 14:46:41,221 - mmfewshot - INFO - Training parameters: roi_head.vae.decoder.1.bias
+2024-07-01 14:46:41,284 - mmfewshot - INFO - 
+FewShotVOCDefaultDataset query_support_dataset with number of images 137, and instance counts: 
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+| category      | count | category         | count | category        | count | category       | count | category       | count |
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+| 0 [aeroplane] | 10    | 1 [bicycle]      | 10    | 2 [boat]        | 10    | 3 [bottle]     | 10    | 4 [car]        | 10    |
+| 5 [cat]       | 10    | 6 [chair]        | 10    | 7 [diningtable] | 10    | 8 [dog]        | 10    | 9 [horse]      | 10    |
+| 10 [person]   | 10    | 11 [pottedplant] | 10    | 12 [sheep]      | 10    | 13 [train]     | 10    | 14 [tvmonitor] | 10    |
+| 15 [bird]     | 10    | 16 [bus]         | 10    | 17 [cow]        | 10    | 18 [motorbike] | 10    | 19 [sofa]      | 10    |
+| -1 background | 0     |                  |       |                 |       |                |       |                |       |
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+2024-07-01 14:46:44,562 - mmfewshot - INFO - 
+FewShotVOCDataset Test dataset with number of images 4952, and instance counts: 
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+| category      | count | category         | count | category        | count | category       | count | category       | count |
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+| 0 [aeroplane] | 285   | 1 [bicycle]      | 337   | 2 [boat]        | 263   | 3 [bottle]     | 469   | 4 [car]        | 1201  |
+| 5 [cat]       | 358   | 6 [chair]        | 756   | 7 [diningtable] | 206   | 8 [dog]        | 489   | 9 [horse]      | 348   |
+| 10 [person]   | 4528  | 11 [pottedplant] | 480   | 12 [sheep]      | 242   | 13 [train]     | 282   | 14 [tvmonitor] | 308   |
+| 15 [bird]     | 459   | 16 [bus]         | 213   | 17 [cow]        | 244   | 18 [motorbike] | 325   | 19 [sofa]      | 239   |
+| -1 background | 0     |                  |       |                 |       |                |       |                |       |
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+2024-07-01 14:46:44,589 - mmfewshot - INFO - 
+FewShotVOCCopyDataset model_init_dataset with number of images 200, and instance counts: 
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+| category      | count | category         | count | category        | count | category       | count | category       | count |
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+| 0 [aeroplane] | 10    | 1 [bicycle]      | 10    | 2 [boat]        | 10    | 3 [bottle]     | 10    | 4 [car]        | 10    |
+| 5 [cat]       | 10    | 6 [chair]        | 10    | 7 [diningtable] | 10    | 8 [dog]        | 10    | 9 [horse]      | 10    |
+| 10 [person]   | 10    | 11 [pottedplant] | 10    | 12 [sheep]      | 10    | 13 [train]     | 10    | 14 [tvmonitor] | 10    |
+| 15 [bird]     | 10    | 16 [bus]         | 10    | 17 [cow]        | 10    | 18 [motorbike] | 10    | 19 [sofa]      | 10    |
+| -1 background | 0     |                  |       |                 |       |                |       |                |       |
++---------------+-------+------------------+-------+-----------------+-------+----------------+-------+----------------+-------+
+2024-07-01 14:46:44,591 - mmfewshot - INFO - load checkpoint from local path: work_dirs/vfa_r101_c4_8xb4_voc-split1_base-training/iter_18000.pth
+2024-07-01 14:46:45,531 - mmfewshot - WARNING - The model and loaded state dict do not match exactly
+
+size mismatch for roi_head.bbox_head.fc_cls.weight: copying a param with shape torch.Size([16, 2048]) from checkpoint, the shape in current model is torch.Size([21, 2048]).
+size mismatch for roi_head.bbox_head.fc_cls.bias: copying a param with shape torch.Size([16]) from checkpoint, the shape in current model is torch.Size([21]).
+size mismatch for roi_head.bbox_head.fc_reg.weight: copying a param with shape torch.Size([60, 2048]) from checkpoint, the shape in current model is torch.Size([80, 2048]).
+size mismatch for roi_head.bbox_head.fc_reg.bias: copying a param with shape torch.Size([60]) from checkpoint, the shape in current model is torch.Size([80]).
+size mismatch for roi_head.bbox_head.fc_meta.weight: copying a param with shape torch.Size([15, 2048]) from checkpoint, the shape in current model is torch.Size([20, 2048]).
+size mismatch for roi_head.bbox_head.fc_meta.bias: copying a param with shape torch.Size([15]) from checkpoint, the shape in current model is torch.Size([20]).
+2024-07-01 14:46:45,572 - mmfewshot - INFO - Start running, host: root@f45be5186e2c, work_dir: /workspace/VFA/work_dirs/vfa_r101_c4_8xb4_voc-split1_10shot-fine-tuning
+2024-07-01 14:46:45,572 - mmfewshot - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(LOW         ) QuerySupportEvalHook               
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) NumClassCheckHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) QuerySupportEvalHook               
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) QuerySupportEvalHook               
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) QuerySupportEvalHook               
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) QuerySupportEvalHook               
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) NumClassCheckHook                  
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2024-07-01 14:46:45,573 - mmfewshot - INFO - workflow: [('train', 1)], max: 2000 iters
+2024-07-01 14:46:45,573 - mmfewshot - INFO - Checkpoints will be saved to /workspace/VFA/work_dirs/vfa_r101_c4_8xb4_voc-split1_10shot-fine-tuning by HardDiskBackend.
+2024-07-01 14:47:02,035 - mmfewshot - INFO - Iter [50/2000]	lr: 1.000e-03, eta: 0:10:29, time: 0.323, data_time: 0.047, memory: 2010, loss_rpn_cls: 0.0572, loss_rpn_bbox: 0.0727, loss_cls: 1.0681, loss_bbox: 0.4277, acc: 77.8125, loss_meta_cls: 0.1506, meta_acc: 5.6000, loss_vae: 0.0468, loss: 1.8232
+2024-07-01 14:47:15,013 - mmfewshot - INFO - Iter [100/2000]	lr: 1.000e-03, eta: 0:09:13, time: 0.260, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0693, loss_rpn_bbox: 0.0789, loss_cls: 0.6242, loss_bbox: 0.3993, acc: 82.9414, loss_meta_cls: 0.1486, meta_acc: 7.7000, loss_vae: 0.0470, loss: 1.3674
+2024-07-01 14:47:27,813 - mmfewshot - INFO - Iter [150/2000]	lr: 1.000e-03, eta: 0:08:37, time: 0.256, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0618, loss_rpn_bbox: 0.0828, loss_cls: 0.5167, loss_bbox: 0.3754, acc: 85.0977, loss_meta_cls: 0.1470, meta_acc: 8.7000, loss_vae: 0.0470, loss: 1.2308
+2024-07-01 14:47:40,547 - mmfewshot - INFO - Iter [200/2000]	lr: 1.000e-03, eta: 0:08:11, time: 0.255, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0645, loss_rpn_bbox: 0.0866, loss_cls: 0.4427, loss_bbox: 0.3482, acc: 87.4961, loss_meta_cls: 0.1461, meta_acc: 9.4000, loss_vae: 0.0467, loss: 1.1348
+2024-07-01 14:47:53,545 - mmfewshot - INFO - Iter [250/2000]	lr: 1.000e-03, eta: 0:07:53, time: 0.260, data_time: 0.044, memory: 2010, loss_rpn_cls: 0.0559, loss_rpn_bbox: 0.0776, loss_cls: 0.3967, loss_bbox: 0.3360, acc: 88.8242, loss_meta_cls: 0.1449, meta_acc: 11.0000, loss_vae: 0.0470, loss: 1.0581
+2024-07-01 14:48:06,357 - mmfewshot - INFO - Iter [300/2000]	lr: 1.000e-03, eta: 0:07:35, time: 0.256, data_time: 0.044, memory: 2010, loss_rpn_cls: 0.0716, loss_rpn_bbox: 0.0862, loss_cls: 0.3417, loss_bbox: 0.3066, acc: 90.6445, loss_meta_cls: 0.1441, meta_acc: 11.0000, loss_vae: 0.0468, loss: 0.9971
+2024-07-01 14:48:19,523 - mmfewshot - INFO - Iter [350/2000]	lr: 1.000e-03, eta: 0:07:21, time: 0.263, data_time: 0.043, memory: 2010, loss_rpn_cls: 0.0572, loss_rpn_bbox: 0.0829, loss_cls: 0.3150, loss_bbox: 0.2823, acc: 91.3477, loss_meta_cls: 0.1437, meta_acc: 10.4000, loss_vae: 0.0466, loss: 0.9276
+2024-07-01 14:48:32,282 - mmfewshot - INFO - Iter [400/2000]	lr: 1.000e-03, eta: 0:07:05, time: 0.255, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0493, loss_rpn_bbox: 0.0830, loss_cls: 0.2852, loss_bbox: 0.2750, acc: 92.1953, loss_meta_cls: 0.1431, meta_acc: 9.7000, loss_vae: 0.0467, loss: 0.8822
+2024-07-01 14:48:45,271 - mmfewshot - INFO - Iter [450/2000]	lr: 1.000e-03, eta: 0:06:51, time: 0.260, data_time: 0.044, memory: 2010, loss_rpn_cls: 0.0648, loss_rpn_bbox: 0.0856, loss_cls: 0.2769, loss_bbox: 0.2575, acc: 92.0898, loss_meta_cls: 0.1424, meta_acc: 11.2000, loss_vae: 0.0468, loss: 0.8739
+2024-07-01 14:48:58,099 - mmfewshot - INFO - Iter [500/2000]	lr: 1.000e-03, eta: 0:06:36, time: 0.257, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0540, loss_rpn_bbox: 0.0676, loss_cls: 0.2495, loss_bbox: 0.2416, acc: 93.1250, loss_meta_cls: 0.1424, meta_acc: 10.5000, loss_vae: 0.0464, loss: 0.8015
+2024-07-01 14:49:11,011 - mmfewshot - INFO - Iter [550/2000]	lr: 1.000e-03, eta: 0:06:22, time: 0.258, data_time: 0.043, memory: 2010, loss_rpn_cls: 0.0551, loss_rpn_bbox: 0.0745, loss_cls: 0.2423, loss_bbox: 0.2244, acc: 93.1250, loss_meta_cls: 0.1414, meta_acc: 12.6000, loss_vae: 0.0467, loss: 0.7844
+2024-07-01 14:49:23,885 - mmfewshot - INFO - Iter [600/2000]	lr: 1.000e-03, eta: 0:06:08, time: 0.257, data_time: 0.044, memory: 2010, loss_rpn_cls: 0.0655, loss_rpn_bbox: 0.0806, loss_cls: 0.2339, loss_bbox: 0.2227, acc: 92.9844, loss_meta_cls: 0.1410, meta_acc: 12.8000, loss_vae: 0.0464, loss: 0.7901
+2024-07-01 14:49:36,751 - mmfewshot - INFO - Iter [650/2000]	lr: 1.000e-03, eta: 0:05:54, time: 0.257, data_time: 0.043, memory: 2010, loss_rpn_cls: 0.0523, loss_rpn_bbox: 0.0833, loss_cls: 0.2281, loss_bbox: 0.2012, acc: 93.4453, loss_meta_cls: 0.1403, meta_acc: 12.5000, loss_vae: 0.0465, loss: 0.7518
+2024-07-01 14:49:49,533 - mmfewshot - INFO - Iter [700/2000]	lr: 1.000e-03, eta: 0:05:41, time: 0.256, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0452, loss_rpn_bbox: 0.0790, loss_cls: 0.2122, loss_bbox: 0.1898, acc: 93.8125, loss_meta_cls: 0.1402, meta_acc: 10.8000, loss_vae: 0.0466, loss: 0.7130
+2024-07-01 14:50:02,167 - mmfewshot - INFO - Iter [750/2000]	lr: 1.000e-03, eta: 0:05:27, time: 0.253, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0566, loss_rpn_bbox: 0.0712, loss_cls: 0.2082, loss_bbox: 0.1839, acc: 93.7734, loss_meta_cls: 0.1400, meta_acc: 12.2000, loss_vae: 0.0463, loss: 0.7063
+2024-07-01 14:50:14,974 - mmfewshot - INFO - Iter [800/2000]	lr: 1.000e-03, eta: 0:05:13, time: 0.256, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0665, loss_rpn_bbox: 0.0814, loss_cls: 0.1997, loss_bbox: 0.1734, acc: 93.6016, loss_meta_cls: 0.1393, meta_acc: 12.0000, loss_vae: 0.0466, loss: 0.7069
+2024-07-01 14:50:27,881 - mmfewshot - INFO - Iter [850/2000]	lr: 1.000e-03, eta: 0:05:00, time: 0.258, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0446, loss_rpn_bbox: 0.0788, loss_cls: 0.2034, loss_bbox: 0.1666, acc: 93.6992, loss_meta_cls: 0.1395, meta_acc: 10.8000, loss_vae: 0.0466, loss: 0.6796
+2024-07-01 14:50:40,949 - mmfewshot - INFO - Iter [900/2000]	lr: 1.000e-03, eta: 0:04:47, time: 0.261, data_time: 0.044, memory: 2010, loss_rpn_cls: 0.0611, loss_rpn_bbox: 0.0793, loss_cls: 0.1949, loss_bbox: 0.1565, acc: 93.8945, loss_meta_cls: 0.1391, meta_acc: 12.6000, loss_vae: 0.0463, loss: 0.6772
+2024-07-01 14:50:53,550 - mmfewshot - INFO - Iter [950/2000]	lr: 1.000e-03, eta: 0:04:33, time: 0.252, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0644, loss_rpn_bbox: 0.0819, loss_cls: 0.1921, loss_bbox: 0.1557, acc: 93.9141, loss_meta_cls: 0.1387, meta_acc: 11.6000, loss_vae: 0.0464, loss: 0.6793
+2024-07-01 14:51:06,198 - mmfewshot - INFO - Exp name: vfa_r101_c4_8xb4_voc-split1_10shot-fine-tuning.py
+2024-07-01 14:51:06,199 - mmfewshot - INFO - Iter [1000/2000]	lr: 1.000e-03, eta: 0:04:20, time: 0.253, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0512, loss_rpn_bbox: 0.0688, loss_cls: 0.1827, loss_bbox: 0.1428, acc: 94.3516, loss_meta_cls: 0.1384, meta_acc: 12.6000, loss_vae: 0.0464, loss: 0.6302
+2024-07-01 14:51:18,731 - mmfewshot - INFO - Iter [1050/2000]	lr: 1.000e-03, eta: 0:04:06, time: 0.251, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0548, loss_rpn_bbox: 0.0792, loss_cls: 0.1771, loss_bbox: 0.1384, acc: 94.2539, loss_meta_cls: 0.1385, meta_acc: 12.3000, loss_vae: 0.0462, loss: 0.6342
+2024-07-01 14:51:31,363 - mmfewshot - INFO - Iter [1100/2000]	lr: 1.000e-03, eta: 0:03:53, time: 0.253, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0563, loss_rpn_bbox: 0.0750, loss_cls: 0.1821, loss_bbox: 0.1376, acc: 94.1250, loss_meta_cls: 0.1382, meta_acc: 11.9000, loss_vae: 0.0464, loss: 0.6356
+2024-07-01 14:51:44,288 - mmfewshot - INFO - Iter [1150/2000]	lr: 1.000e-03, eta: 0:03:40, time: 0.258, data_time: 0.043, memory: 2010, loss_rpn_cls: 0.0516, loss_rpn_bbox: 0.0775, loss_cls: 0.1725, loss_bbox: 0.1236, acc: 94.3984, loss_meta_cls: 0.1380, meta_acc: 13.1000, loss_vae: 0.0460, loss: 0.6091
+2024-07-01 14:51:57,043 - mmfewshot - INFO - Iter [1200/2000]	lr: 1.000e-03, eta: 0:03:27, time: 0.255, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0597, loss_rpn_bbox: 0.0811, loss_cls: 0.1812, loss_bbox: 0.1259, acc: 94.0039, loss_meta_cls: 0.1373, meta_acc: 12.3000, loss_vae: 0.0463, loss: 0.6317
+2024-07-01 14:52:09,807 - mmfewshot - INFO - Iter [1250/2000]	lr: 1.000e-03, eta: 0:03:14, time: 0.255, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0498, loss_rpn_bbox: 0.0723, loss_cls: 0.1706, loss_bbox: 0.1154, acc: 94.6211, loss_meta_cls: 0.1380, meta_acc: 12.4000, loss_vae: 0.0462, loss: 0.5923
+2024-07-01 14:52:22,651 - mmfewshot - INFO - Iter [1300/2000]	lr: 1.000e-03, eta: 0:03:01, time: 0.257, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0546, loss_rpn_bbox: 0.0734, loss_cls: 0.1704, loss_bbox: 0.1209, acc: 94.2227, loss_meta_cls: 0.1374, meta_acc: 12.1000, loss_vae: 0.0461, loss: 0.6029
+2024-07-01 14:52:35,422 - mmfewshot - INFO - Iter [1350/2000]	lr: 1.000e-03, eta: 0:02:48, time: 0.255, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0632, loss_rpn_bbox: 0.0769, loss_cls: 0.1714, loss_bbox: 0.1176, acc: 94.2500, loss_meta_cls: 0.1369, meta_acc: 12.2000, loss_vae: 0.0463, loss: 0.6123
+2024-07-01 14:52:47,913 - mmfewshot - INFO - Iter [1400/2000]	lr: 1.000e-03, eta: 0:02:35, time: 0.250, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0738, loss_rpn_bbox: 0.0829, loss_cls: 0.1677, loss_bbox: 0.1133, acc: 94.5703, loss_meta_cls: 0.1373, meta_acc: 12.3000, loss_vae: 0.0462, loss: 0.6212
+2024-07-01 14:53:00,376 - mmfewshot - INFO - Iter [1450/2000]	lr: 1.000e-03, eta: 0:02:22, time: 0.249, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0583, loss_rpn_bbox: 0.0712, loss_cls: 0.1633, loss_bbox: 0.1118, acc: 94.3477, loss_meta_cls: 0.1372, meta_acc: 12.8000, loss_vae: 0.0461, loss: 0.5879
+2024-07-01 14:53:12,706 - mmfewshot - INFO - Iter [1500/2000]	lr: 1.000e-03, eta: 0:02:08, time: 0.247, data_time: 0.040, memory: 2010, loss_rpn_cls: 0.0497, loss_rpn_bbox: 0.0614, loss_cls: 0.1643, loss_bbox: 0.1082, acc: 94.5430, loss_meta_cls: 0.1367, meta_acc: 12.5000, loss_vae: 0.0461, loss: 0.5664
+2024-07-01 14:53:25,216 - mmfewshot - INFO - Iter [1550/2000]	lr: 1.000e-03, eta: 0:01:55, time: 0.250, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0535, loss_rpn_bbox: 0.0686, loss_cls: 0.1599, loss_bbox: 0.1021, acc: 94.7578, loss_meta_cls: 0.1365, meta_acc: 12.6000, loss_vae: 0.0461, loss: 0.5667
+2024-07-01 14:53:38,024 - mmfewshot - INFO - Iter [1600/2000]	lr: 1.000e-03, eta: 0:01:43, time: 0.256, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0673, loss_rpn_bbox: 0.0901, loss_cls: 0.1597, loss_bbox: 0.1012, acc: 94.6992, loss_meta_cls: 0.1364, meta_acc: 13.4000, loss_vae: 0.0459, loss: 0.6005
+2024-07-01 14:53:50,475 - mmfewshot - INFO - Iter [1650/2000]	lr: 1.000e-03, eta: 0:01:30, time: 0.249, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0650, loss_rpn_bbox: 0.0792, loss_cls: 0.1611, loss_bbox: 0.0997, acc: 94.5078, loss_meta_cls: 0.1366, meta_acc: 12.8000, loss_vae: 0.0462, loss: 0.5876
+2024-07-01 14:54:02,981 - mmfewshot - INFO - Iter [1700/2000]	lr: 1.000e-03, eta: 0:01:17, time: 0.250, data_time: 0.040, memory: 2010, loss_rpn_cls: 0.0615, loss_rpn_bbox: 0.0811, loss_cls: 0.1594, loss_bbox: 0.1001, acc: 94.3867, loss_meta_cls: 0.1363, meta_acc: 13.3000, loss_vae: 0.0457, loss: 0.5841
+2024-07-01 14:54:15,413 - mmfewshot - INFO - Iter [1750/2000]	lr: 1.000e-03, eta: 0:01:04, time: 0.249, data_time: 0.040, memory: 2010, loss_rpn_cls: 0.0560, loss_rpn_bbox: 0.0686, loss_cls: 0.1538, loss_bbox: 0.0963, acc: 94.8125, loss_meta_cls: 0.1358, meta_acc: 13.2000, loss_vae: 0.0461, loss: 0.5566
+2024-07-01 14:54:28,207 - mmfewshot - INFO - Iter [1800/2000]	lr: 1.000e-03, eta: 0:00:51, time: 0.256, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0546, loss_rpn_bbox: 0.0770, loss_cls: 0.1596, loss_bbox: 0.0964, acc: 94.4336, loss_meta_cls: 0.1367, meta_acc: 11.6000, loss_vae: 0.0461, loss: 0.5705
+2024-07-01 14:54:41,052 - mmfewshot - INFO - Iter [1850/2000]	lr: 1.000e-03, eta: 0:00:38, time: 0.257, data_time: 0.041, memory: 2010, loss_rpn_cls: 0.0562, loss_rpn_bbox: 0.0766, loss_cls: 0.1462, loss_bbox: 0.0898, acc: 94.8125, loss_meta_cls: 0.1363, meta_acc: 12.9000, loss_vae: 0.0459, loss: 0.5512
+2024-07-01 14:54:53,498 - mmfewshot - INFO - Iter [1900/2000]	lr: 1.000e-03, eta: 0:00:25, time: 0.249, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0553, loss_rpn_bbox: 0.0728, loss_cls: 0.1486, loss_bbox: 0.0957, acc: 94.9414, loss_meta_cls: 0.1359, meta_acc: 11.9000, loss_vae: 0.0458, loss: 0.5541
+2024-07-01 14:55:06,348 - mmfewshot - INFO - Iter [1950/2000]	lr: 1.000e-03, eta: 0:00:12, time: 0.257, data_time: 0.042, memory: 2010, loss_rpn_cls: 0.0676, loss_rpn_bbox: 0.0781, loss_cls: 0.1531, loss_bbox: 0.0879, acc: 94.7266, loss_meta_cls: 0.1354, meta_acc: 13.0000, loss_vae: 0.0460, loss: 0.5682
+2024-07-01 14:55:19,292 - mmfewshot - INFO - Saving checkpoint at 2000 iterations
+2024-07-01 14:55:20,420 - mmfewshot - INFO - Exp name: vfa_r101_c4_8xb4_voc-split1_10shot-fine-tuning.py
+2024-07-01 14:55:20,420 - mmfewshot - INFO - Iter [2000/2000]	lr: 1.000e-03, eta: 0:00:00, time: 0.281, data_time: 0.043, memory: 2010, loss_rpn_cls: 0.0509, loss_rpn_bbox: 0.0747, loss_cls: 0.1492, loss_bbox: 0.0879, acc: 94.8906, loss_meta_cls: 0.1360, meta_acc: 12.9000, loss_vae: 0.0458, loss: 0.5445
+2024-07-01 15:00:36,352 - mmfewshot - INFO - 
++-------------+------+------+--------+-------+
+| class       | gts  | dets | recall | ap    |
++-------------+------+------+--------+-------+
+| aeroplane   | 285  | 1027 | 0.853  | 0.775 |
+| bicycle     | 337  | 868  | 0.855  | 0.773 |
+| boat        | 263  | 1062 | 0.810  | 0.567 |
+| bottle      | 469  | 1073 | 0.757  | 0.651 |
+| car         | 1201 | 2675 | 0.936  | 0.865 |
+| cat         | 358  | 1048 | 0.939  | 0.860 |
+| chair       | 756  | 2506 | 0.728  | 0.531 |
+| diningtable | 206  | 1098 | 0.806  | 0.604 |
+| dog         | 489  | 1356 | 0.930  | 0.826 |
+| horse       | 348  | 1418 | 0.922  | 0.826 |
+| person      | 4528 | 6631 | 0.850  | 0.775 |
+| pottedplant | 480  | 1760 | 0.642  | 0.409 |
+| sheep       | 242  | 801  | 0.855  | 0.726 |
+| train       | 282  | 1380 | 0.901  | 0.758 |
+| tvmonitor   | 308  | 1417 | 0.890  | 0.760 |
+| bird        | 459  | 2101 | 0.736  | 0.594 |
+| bus         | 213  | 2344 | 0.873  | 0.722 |
+| cow         | 244  | 1923 | 0.918  | 0.714 |
+| motorbike   | 325  | 2503 | 0.818  | 0.665 |
+| sofa        | 239  | 2460 | 0.820  | 0.479 |
++-------------+------+------+--------+-------+
+| mAP         |      |      |        | 0.694 |
++-------------+------+------+--------+-------+
+2024-07-01 15:00:36,434 - mmfewshot - INFO - BASE_CLASSES_SPLIT1 mAP: 0.7137669920921326
+2024-07-01 15:00:36,435 - mmfewshot - INFO - NOVEL_CLASSES_SPLIT1 mAP: 0.634719729423523
+2024-07-01 15:00:36,471 - mmfewshot - INFO - Exp name: vfa_r101_c4_8xb4_voc-split1_10shot-fine-tuning.py
+2024-07-01 15:00:36,477 - mmfewshot - INFO - Iter(val) [4952]	AP50: 0.6940, BASE_CLASSES_SPLIT1: AP50: 0.7140, NOVEL_CLASSES_SPLIT1: AP50: 0.6350, mAP: 0.6940
