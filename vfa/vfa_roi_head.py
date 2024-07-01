@@ -131,25 +131,67 @@ class VFARoIHead(MetaRCNNRoIHead):
         for img_id in range(batch_size):
             start = img_id * num_sample_per_imge
             end = (img_id + 1) * num_sample_per_imge
+            
+
             # class agnostic aggregation
             # random_index = np.random.choice(
             #     range(query_gt_labels[img_id].size(0)))
             # random_query_label = query_gt_labels[img_id][random_index]
+
+            # # vfa old code
+            # random_index = np.random.choice(
+            #     range(len(support_gt_labels)))
+            # random_query_label = support_gt_labels[random_index]
+            # for i in range(support_feat.size(0)):
+            #     if support_gt_labels[i] == random_query_label:
+            #         bbox_results = self._bbox_forward(
+            #             query_roi_feats[start:end],
+            #             support_feat_inv[i].sigmoid().unsqueeze(0))
+            #         single_loss_bbox = self.bbox_head.loss(
+            #             bbox_results['cls_score'], bbox_results['bbox_pred'],
+            #             query_rois[start:end], labels[start:end],
+            #             label_weights[start:end], bbox_targets[start:end],
+            #             bbox_weights[start:end])
+            #         for key in single_loss_bbox.keys():
+            #             loss_bbox[key].append(single_loss_bbox[key])
+
+
+            # Novel-Base Balance class agnostic aggregation
             random_index = np.random.choice(
-                range(len(support_gt_labels)))
-            random_query_label = support_gt_labels[random_index]
+                range(query_gt_labels[img_id].size(0)))
+            random_query_label = query_gt_labels[img_id][random_index]
+
+            s_feat_ids = []
             for i in range(support_feat.size(0)):
                 if support_gt_labels[i] == random_query_label:
-                    bbox_results = self._bbox_forward(
-                        query_roi_feats[start:end],
-                        support_feat_inv[i].sigmoid().unsqueeze(0))
-                    single_loss_bbox = self.bbox_head.loss(
-                        bbox_results['cls_score'], bbox_results['bbox_pred'],
-                        query_rois[start:end], labels[start:end],
-                        label_weights[start:end], bbox_targets[start:end],
-                        bbox_weights[start:end])
-                    for key in single_loss_bbox.keys():
-                        loss_bbox[key].append(single_loss_bbox[key])
+                    s_feat_ids.append(i)
+
+            nb_class = []
+            if self.num_novel != 0:
+                nb_class = self.novel_class
+            else:
+                nb_class = self.base_class
+                
+            for c in nb_class:
+                s_class_ids = []
+                for i in range(support_feat.size(0)):
+                    if support_gt_labels[i] == c:
+                        s_class_ids.append(i)
+                s_feat_ids.append(np.random.choice(s_class_ids))
+                s_class_ids = []
+
+        for i in s_feat_ids:
+            bbox_results = self._bbox_forward(
+                query_roi_feats[start:end],
+                support_feat_inv[i].sigmoid().unsqueeze(0))
+            single_loss_bbox = self.bbox_head.loss(
+                bbox_results['cls_score'], bbox_results['bbox_pred'],
+                query_rois[start:end], labels[start:end],
+                label_weights[start:end], bbox_targets[start:end],
+                bbox_weights[start:end])
+            for key in single_loss_bbox.keys():
+                loss_bbox[key].append(single_loss_bbox[key])
+
         if bbox_results is not None:
             for key in loss_bbox.keys():
                 if key == 'acc':

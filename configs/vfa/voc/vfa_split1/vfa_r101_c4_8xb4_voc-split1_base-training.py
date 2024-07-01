@@ -19,4 +19,6 @@ checkpoint_config = dict(interval=3000)
 runner = dict(max_iters=18000)
 optimizer = dict(lr=0.02)
 # model settings
-model = dict(roi_head=dict(bbox_head=dict(num_classes=15, num_meta_classes=15)))
+model = dict(
+    roi_head=dict(bbox_head=dict(num_classes=15, num_meta_classes=15),
+                  num_novel=0))
