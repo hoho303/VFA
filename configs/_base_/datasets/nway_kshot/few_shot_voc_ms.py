@@ -43,7 +43,7 @@ test_pipeline = [
         ])
 ]
 # classes splits are predefined in FewShotVOCDataset
-data_root = 'data/VOCdevkit/'
+data_root = '/kaggle/input/fewshot-pascal-voc/VOCdevkit/'
 data = dict(
     samples_per_gpu=4,
     workers_per_gpu=4,
