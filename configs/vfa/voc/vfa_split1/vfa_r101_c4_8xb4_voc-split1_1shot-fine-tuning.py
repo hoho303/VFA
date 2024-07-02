@@ -21,7 +21,7 @@ data = dict(
 evaluation = dict(
     interval=400, class_splits=['BASE_CLASSES_SPLIT1', 'NOVEL_CLASSES_SPLIT1'])
 checkpoint_config = dict(interval=400)
-optimizer = dict(lr=0.001 / 4)
+optimizer = dict(lr=0.001)
 lr_config = dict(warmup=None)
 runner = dict(max_iters=400)
 load_from = '/kaggle/input/vfa-base-training/VFA/work_dirs/vfa_r101_c4_8xb4_voc-split1_base-training/iter_18000.pth'
