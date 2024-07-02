@@ -181,12 +181,12 @@ class VFARoIHead(MetaRCNNRoIHead):
             s_feat_ids = []
             if self.num_novel != 0:
                 nb_class = list(self.novel_class)
-                random_index = np.random.choice(
-                    range(query_gt_labels[img_id].size(0)))
-                random_query_label = query_gt_labels[img_id][random_index]
-                for i in range(support_feats[0].size(0)):
-                    if support_gt_labels[i] == random_query_label:
-                        s_feat_ids.append(i)
+                # random_index = np.random.choice(
+                #     range(query_gt_labels[img_id].size(0)))
+                # random_query_label = query_gt_labels[img_id][random_index]
+                # for i in range(support_feats[0].size(0)):
+                #     if support_gt_labels[i] == random_query_label:
+                #         s_feat_ids.append(i)
                 
                 s_feat_ids.append(np.random.choice(nb_class))
             else:
