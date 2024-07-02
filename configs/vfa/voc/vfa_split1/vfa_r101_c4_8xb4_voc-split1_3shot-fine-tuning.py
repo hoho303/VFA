@@ -27,6 +27,7 @@ runner = dict(max_iters=1200)
 load_from = 'work_dirs/vfa_r101_c4_8xb4_voc-split1_base-training/iter_18000.pth'
 
 # model settings
-model = dict(frozen_parameters=[
-    'backbone', 'shared_head',  'aggregation_layer',  'rpn_head',
-])
+model = dict(
+    frozen_parameters=['backbone', 'shared_head',  'aggregation_layer',  'rpn_head',],
+    roi_head=dict(num_novel=5)
+)
