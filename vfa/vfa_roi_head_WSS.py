@@ -25,6 +25,77 @@ class ContrastiveLayer(nn.Module):
         x = self.fc2(x)
         x = F.normalize(x, dim=1)
         return x
+    
+class WeaklySelector(nn.Module):
+
+    def __init__(self, in_channels: int, num_classes: int, num_select: dict):
+        """
+        inputs: dictionary contain torch.Tensors, which comes from backbone
+                [Tensor1(hidden feature1), Tensor2(hidden feature2)...]
+                Please note that if len(features.size) equal to 3, the order of dimension must be [B,S,C],
+                S mean the spatial domain, and if len(features.size) equal to 4, the order must be [B,C,H,W]
+
+        """
+        super(WeaklySelector, self).__init__()
+
+        self.num_select = num_select
+        self.classifier = nn.Linear(in_channels, num_classes)
+
+    # def select(self, logits, l_name):
+    #     """
+    #     logits: [B, S, num_classes]
+    #     """
+    #     probs = torch.softmax(logits, dim=-1)
+    #     scores, _ = torch.max(probs, dim=-1)
+    #     _, ids = torch.sort(scores, -1, descending=True)
+    #     sn = self.num_select[l_name]
+    #     s_ids = ids[:, :sn]
+    #     not_s_ids = ids[:, sn:]
+    #     return s_ids.unsqueeze(-1), not_s_ids.unsqueeze(-1)
+
+    def forward(self, x: Tensor):
+        """
+        x : Tensor with shape [N, C, H, W]
+            
+        """
+        
+        N, C, H, W = x.size()
+        x = x.view(N, C, H*W).permute(0, 2, 1).contiguous()
+        logits = self.classifier(x)
+        
+        probs = torch.softmax(logits, dim=-1)
+        selections = []
+        preds_1 = []
+        preds_0 = []
+        num_select = self.num_select
+        for bi in range(logits.size(0)):
+            max_ids, _ = torch.max(probs[bi], dim=-1)
+            confs, ranks = torch.sort(max_ids, descending=True)
+            sf = x[bi][ranks[:num_select]]
+            nf = x[bi][ranks[num_select:]]  # calculate
+            selections.append(sf) # [num_selected, C]
+            preds_1.append(logits[bi][ranks[:num_select]])
+            preds_0.append(logits[bi][ranks[num_select:]])
+            
+        selections = torch.stack(selections)
+        preds_1 = torch.stack(preds_1)
+        preds_0 = torch.stack(preds_0)
+
+        return selections, preds_1, preds_0
+    
+    def loss_funtion(self, selected_logits, not_selected_logits, labels, sf_weight=1.0, nsf_weight=1.0):
+        B, S1, C = selected_logits.size()
+        selected_logits = selected_logits.view(-1, C).contiguous()
+        loss_s = nn.CrossEntropyLoss()(selected_logits, labels.unsqueeze(1).repeat(1, S1).flatten(0))
+
+        B, S2, C = not_selected_logits.size()
+        not_selected_logits = not_selected_logits.view(-1, C).contiguous()
+        n_preds = nn.Tanh()(not_selected_logits)
+        n_labels = torch.zeros([B * S2, C]) - 1
+        n_labels = n_labels.to(selected_logits.device)
+        loss_n = nn.MSELoss()(n_preds, n_labels)
+
+        return loss_s * sf_weight + loss_n * nsf_weight
 
 @HEADS.register_module()
 class VFARoIHead(MetaRCNNRoIHead):
@@ -39,11 +110,11 @@ class VFARoIHead(MetaRCNNRoIHead):
 
         self.num_novel = num_novel
         self.num_classes = num_classes
-        self.contrastive_layer = ContrastiveLayer(in_channels=2048, out_channels=mlp_head_channels)
-        self.contrastive_loss = MetaSupervisedContrastiveLoss(temperature=0.2,
-                                                              iou_threshold=0.8,
-                                                              loss_weight=0.5,
-                                                              reweight_type='none')
+        # self.contrastive_layer = ContrastiveLayer(in_channels=2048, out_channels=mlp_head_channels)
+        # self.contrastive_loss = MetaSupervisedContrastiveLoss(temperature=0.2,
+        #                                                       iou_threshold=0.8,
+        #                                                       loss_weight=0.5,
+        #                                                       reweight_type='none')
 
     def _bbox_forward_train(self, query_feats: List[Tensor],
                             support_feats: List[Tensor],
@@ -105,13 +176,10 @@ class VFARoIHead(MetaRCNNRoIHead):
         multi_query_roi_feats = query_roi_feats
         multi_proposal_ious = proposal_ious
         multi_labels = labels
-
         
         # Features contrasitve learning
-        multi_query_contrast_feats = self.contrastive_layer(multi_query_roi_feats)
-        support_contrast_feats = self.contrastive_layer(support_feat)
-
-        # feature_storage.add_data(query_roi_feats, labels, proposal_ious)
+        # multi_query_contrast_feats = self.contrastive_layer(multi_query_roi_feats)
+        # support_contrast_feats = self.contrastive_layer(support_feat)
 
         loss_bbox = {'loss_cls': [], 'loss_bbox': [], 'acc': []}
         batch_size = len(query_img_metas)
@@ -145,17 +213,14 @@ class VFARoIHead(MetaRCNNRoIHead):
 
             s_feat_ids = []
             if self.num_novel != 0:
-                # b_class = list(range(0, self.num_classes - self.num_novel))
+                b_class = list(range(0, self.num_classes - self.num_novel))
                 n_class = list(range(self.num_novel, self.num_classes))
-
-                # random_index = np.random.choice(
-                #     range(query_gt_labels[img_id].size(0)))
-                # random_query_label = query_gt_labels[img_id][random_index]
-
-                random_index = np.random.choice(range(len(support_gt_labels)))
-                random_query_label = support_gt_labels[random_index]
-
-                # random_base_label = np.random.choice(b_class)
+                random_index = np.random.choice(
+                    range(query_gt_labels[img_id].size(0)))
+                random_query_label = query_gt_labels[img_id][random_index]
+                # random_index = np.random.choice(range(len(support_gt_labels)))
+                # random_query_label = support_gt_labels[random_index]
+                random_base_label = np.random.choice(b_class)
                 random_support_label = np.random.choice(n_class)
 
                 for i in range(support_feat.size(0)):
@@ -207,17 +272,51 @@ class VFARoIHead(MetaRCNNRoIHead):
 
         supp_labels = torch.cat(support_gt_labels)
         # supervised contrastive loss
-        loss_contrast = self.contrastive_loss(
-            multi_query_contrast_feats,
-            support_contrast_feats,
-            multi_labels,
-            supp_labels,
-            multi_proposal_ious
-        )
+        # loss_contrast = self.contrastive_loss(
+        #     multi_query_contrast_feats,
+        #     support_contrast_feats,
+        #     multi_labels,
+        #     supp_labels,
+        #     multi_proposal_ious
+        # )
         loss_contrast = {'loss_contrast': loss_contrast}
         loss_bbox.update(loss_contrast)
         bbox_results.update(loss_bbox=loss_bbox)
         return bbox_results
+    
+    def extract_query_roi_feat(self, feats: List[Tensor],
+                               rois: Tensor) -> Tensor:
+        """Extracting query BBOX features, which is used in both training and
+        testing.
+        Args:
+            feats (list[Tensor]): List of query features, each item
+                with shape (N, C, H, W).
+            rois (Tensor): shape with (bs*128, 5).
+        Returns:
+            Tensor: RoI features with shape (N, C).
+        """
+        roi_feats = self.bbox_roi_extractor(
+            feats[:self.bbox_roi_extractor.num_inputs], rois)
+        if self.with_shared_head:
+            roi_feats = self.shared_head(roi_feats)
+        return roi_feats
+
+    def extract_support_feats(self, feats: List[Tensor]) -> List[Tensor]:
+        """Forward support features through shared layers.
+        Args:
+            feats (list[Tensor]): List of support features, each item
+                with shape (N, C, H, W).
+        Returns:
+            list[Tensor]: List of support features, each item
+                with shape (N, C).
+        """
+        out = []
+        if self.with_shared_head:
+            for lvl in range(len(feats)):
+                out.append(self.shared_head.forward_support(feats[lvl]))
+        else:
+            out = feats
+        return out
 
     def _bbox_forward(self, query_roi_feats: Tensor,
                       support_roi_feats: Tensor) -> Dict:
